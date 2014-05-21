@@ -100,7 +100,7 @@
             if (arr.length > 2 && arr[3] != "" && arr[3] != "#") {
                 extraPath = "/" + arr[3];
             }
-            var wsUri = "ws://" + arr[2] + extraPath + "/chat";
+            var wsUri = "ws://" + arr[2] + extraPath + "/bchat";
             ws = new WebSocket(wsUri);
 
             ws.onopen = function(){
