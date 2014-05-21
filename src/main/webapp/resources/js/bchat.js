@@ -1,154 +1,177 @@
 
-var username = "ラボ" + Math.floor(Math.random() * 800 + 100);
-var usericon = "./resources/images/tamago" + Math.floor(Math.random() * 6) + "_480x480.jpeg";
+var that;
+var BChatHandler = function(){};
+BChatHandler.prototype = {
 
-var ws;
-var closedFlag = true;
+    STATUS_COMMIT : "commit",
+    STATUS_CHANGE : "change",
 
-$(document).ready(function() {
-    $("#send").click(function(e){
+    webSocket : null, // WebSocket Object
+    username : "", // ユーザ名
+    usericon : "", // ユーザアイコン
 
-        if (closedFlag) {
-            alert("WebSocketは閉じられました。\n再読み込みしてください。");
-            return false;
-        }
+    init : function() {
 
-        var message = $("#message").val();
-        if (message.length == 0) {
-            return false;
-        }
+        that = this;
+        that.username = "ラボ" + Math.floor(Math.random() * 800 + 100);
+        that.usericon = "./resources/images/tamago" + Math.floor(Math.random() * 6) + "_480x480.jpeg";
 
-        var json = {};
-        json.status = "commit";
-        json.name = username;
-        json.message = message;
-        json.usericon = usericon;
-        var jsonStr = $.stringify(json);
-        ws.send(jsonStr);
-        $("#message").val("");
-        return false;
-    });
-
-    $("#message").keydown(function(e) {
-        if( e.keyCode === 13 && e.shiftKey ) {  // When "Shift + Enter"
-            $("#send").click();
-            return false;
-        };
-    });
-
-    $("#message").keyup(function(e) {
-
-        if (closedFlag) {
-            alert("WebSocketは閉じられました。\n再読み込みしてください。");
-            return false;
-        }
-
-        var json = {};
-        json.status = "change";
-        json.name = username;
-        json.message = $("#message").val();
-        json.usericon = usericon;
-        var jsonStr = $.stringify(json);
-        ws.send(jsonStr);
-    });
-
-    $("#setprofile").click(function(e) {
-        var inputText = window.prompt("ユーザ名を入力してください", username);
-        if (inputText) {
-            username = inputText;
-        }
-    });
-
-    // いきなりポップアップはあれなのでなくす。
-    // $("#setprofile").click();
-
-    $("#setimage").click(function(e) {
-        var inputText = window.prompt("画像URLを入力してください (32x32に縮小されます)", usericon);
-        if (inputText) {
-            usericon = inputText;
-        }
-    });
-
-    //    $(function(){
-    var url = window.location.href;
-    var arr = url.split("/");
-
-    var extraPath = "";
-    if (arr.length > 2 && arr[3] != "" && arr[3] != "#") {
-        extraPath = "/" + arr[3];
-    }
-    var wsUri = "ws://" + arr[2] + extraPath + "/bchat";
-    ws = new WebSocket(wsUri);
-
-    ws.onopen = function(){
-        closedFlag = false;
-    };
-
-    ws.onclose = function(){
-        closedFlag = true;
-    };
-
-    ws.onmessage = function(message){
-        var msgdata = $.parseJSON(message.data);
-        msgdata.message = msgdata.message.replace(/&quot;/g, '"');
-        if (msgdata.status == "commit") {
-            // delete old message
-            var inputtingElm = $('#inputtingblock div.messageblock[data-session-id="' + msgdata.sessionid + '"]');
-            inputtingElm.remove();
-            // clone new message
-            var cloneElm = $($("div.messageblock")[0]).clone(true);
-            cloneElm.attr("data-message-id", msgdata.messageid);
-            cloneElm.attr("data-session-id", msgdata.sessionid);
-            cloneElm.find("div.name").text(msgdata.name);
-            cloneElm.find("div.messagebody").text(msgdata.message);
-            cloneElm.find("p.messagedate").text(msgdata.messagedate);
-            cloneElm.find("img.usericon").attr("src", msgdata.usericon);
-            $("#inputtingblock").before(cloneElm);
-            $("#contents").scrollTop($("#contents").prop("scrollHeight"));
-
-            // ゴミ掃除
-            $("#inputtingblock").find("div.messageblock").each(function() {
-                var timeout = $(this).data("data-timeout");
-                if (timeout == null || typeof(timeout) == "undefined") {
-                    timeout = 1;
-                }
-                timeout = parseInt(timeout) + 1;
-                $(this).data("data-timeout", timeout);
-                if (timeout > 5) {
-                    $(this).remove();
-                }
-            });
-
-        } else {
-            var inputtingElm = $('#inputtingblock div.messageblock[data-session-id="' + msgdata.sessionid + '"]');
-            var message = msgdata.message;
-            if (inputtingElm.length > 0) {
-                if (message.length > 0) {
-                    inputtingElm.find("div.messagebody").text(msgdata.message);
-                } else {
-                    inputtingElm.remove();
-                }
-
-            } else if (message.length > 0) {
-                var cloneElm = $($("div.messageblock")[0]).clone(true);
-                cloneElm.attr("data-message-id", msgdata.messageid);
-                cloneElm.attr("data-session-id", msgdata.sessionid);
-                cloneElm.find("div.name").text(msgdata.name);
-                cloneElm.find("div.messagebody").text(msgdata.message);
-                cloneElm.find("p.messagedate").text("...");
-                cloneElm.find("img.usericon").attr("src", msgdata.usericon);
-                $("#inputtingblock").append(cloneElm);
+        $("#send").click(function(e){
+            var message = $("#message").val();
+            if (message.length == 0) {
+                return false;
             }
-            $("#contents").scrollTop($("#contents").prop("scrollHeight"));
-        }
-    };
+            that.sendMessage(that.STATUS_COMMIT, message);
+            $("#message").val("");
 
-    ws.onerror = function(event){
-        alert("エラーが発生しました。再読み込みしてください。");
-    };
-});
+            return false;
+        });
+
+        $("#message").keyup(function(e) {
+            that.sendMessage(that.STATUS_CHANGE, $("#message").val());
+        });
+
+        $("#message").keydown(function(e) {
+            if( e.keyCode === 13 && e.shiftKey ) {  // "Shift + Enter"
+                $("#send").click();
+                return false;
+            };
+        });
+
+        $("#setprofile").click(function(e) {
+            var inputText = window.prompt("ユーザ名を入力してください", that.username);
+            if (inputText) {
+                that.username = inputText;
+            }
+        });
+
+        $("#setimage").click(function(e) {
+            var inputText = window.prompt("画像URLを入力してください (32x32に縮小されます)", that.usericon);
+            if (inputText) {
+                that.usericon = inputText;
+            }
+        });
+
+        that.initWebSocket();
+    },
+
+    sendMessage : function(status, message) {
+
+        if (that.webSocket == null) {
+            alert("WebSocketは閉じられました。\n再読み込みしてください。");
+            return false;
+        }
+
+        var json = {};
+        json.status = status;
+        json.name = that.username;
+        json.message = message;
+        json.usericon = that.usericon;
+        var jsonStr = $.stringify(json);
+        that.webSocket.send(jsonStr);
+    },
+
+    createWebSocketUri : function() {
+
+        var url = window.location.href;
+        var arr = url.split("/");
+
+        var extraPath = "";
+        if (arr.length > 2 && arr[3] != "" && arr[3] != "#") {
+            extraPath = "/" + arr[3];
+        }
+        var wsUri = "ws://" + arr[2] + extraPath + "/bchat";
+        return wsUri;
+    },
+
+    initWebSocket : function() {
+
+        var wsUri = that.createWebSocketUri();
+        that.webSocket = new WebSocket(wsUri);
+
+        that.webSocket.onopen = function(){
+        };
+
+        that.webSocket.onclose = function(){
+            that.webSocket = null;
+        };
+
+        that.webSocket.onerror = function(event){
+            alert("エラーが発生しました。再読み込みしてください。");
+        };
+
+        that.webSocket.onmessage = function(message){
+
+            var chatData = $.parseJSON(message.data);
+            chatData.message = chatData.message.replace(/&quot;/g, '"');
+
+            if (chatData.status == that.STATUS_COMMIT) {
+
+                // delete old message
+                var inputtingElm = $('#inputtingblock div.messageblock[data-session-id="' + chatData.sessionid + '"]');
+                inputtingElm.remove();
+                // clone new message
+                var msgElm = that.createMessageElement(chatData);
+                $("#inputtingblock").before(msgElm);
+                $("#contents").scrollTop($("#contents").prop("scrollHeight"));
+
+                // ゴミ掃除
+                that.clearLeftMessages();
+
+            } else {
+
+                var inputtingElm = $('#inputtingblock div.messageblock[data-session-id="' + chatData.sessionid + '"]');
+                var message = chatData.message;
+                if (inputtingElm.length > 0) {
+                    if (message.length > 0) {
+                        inputtingElm.find("div.messagebody").text(chatData.message);
+                    } else {
+                        inputtingElm.remove();
+                    }
+
+                } else if (message.length > 0) {
+                    chatData.messagedate = "...";
+                    var msgElm = that.createMessageElement(chatData);
+                    $("#inputtingblock").append(msgElm);
+                }
+                $("#contents").scrollTop($("#contents").prop("scrollHeight"));
+            }
+        };
+    },
+
+    createMessageElement : function(chatData) {
+
+        var cloneElm = $($("div.messageblock")[0]).clone(true);
+        cloneElm.attr("data-message-id", chatData.messageid);
+        cloneElm.attr("data-session-id", chatData.sessionid);
+        cloneElm.find("div.name").text(chatData.name);
+        cloneElm.find("div.messagebody").text(chatData.message);
+        cloneElm.find("p.messagedate").text(chatData.messagedate);
+        cloneElm.find("img.usericon").attr("src", chatData.usericon);
+        return cloneElm;
+    },
+
+    clearLeftMessages : function() {
+
+        // ゴミ掃除
+        $("#inputtingblock").find("div.messageblock").each(function() {
+
+            var timeout = $(this).data("data-timeout");
+            if (timeout == null || typeof(timeout) == "undefined") {
+                timeout = 1;
+            }
+            timeout = parseInt(timeout) + 1;
+            $(this).data("data-timeout", timeout);
+            if (timeout > 5) {
+                $(this).remove();
+            }
+        });
+    }
+
+};
 
 jQuery.extend({
+
     stringify : function stringify(obj) {
         var t = typeof (obj);
         if (t != "object" || obj === null) {

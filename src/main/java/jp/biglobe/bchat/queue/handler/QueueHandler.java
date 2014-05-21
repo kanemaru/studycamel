@@ -23,12 +23,30 @@ public class QueueHandler {
         try {
             QueueConnectionFactory factory = new ActiveMQConnectionFactory(AQM_DEFAULT_URL);
             queueConnection = factory.createQueueConnection();
-
             queueSession = queueConnection.createQueueSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            closeAllResources();
+        }
+    }
+
+    public void createSenderAndStart() {
+        try {
             Queue queue = queueSession.createQueue(AQM_QUEUE_NAME);
             queueSender = queueSession.createSender(queue);
-            queueReceiver = queueSession.createReceiver(queue);
+            queueConnection.start();
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            closeAllResources();
+        }
+    }
+
+    public void createReceiverAndStart() {
+        try {
+            Queue queue = queueSession.createQueue(AQM_QUEUE_NAME);
+            queueReceiver = queueSession.createReceiver(queue);
             queueConnection.start();
 
         } catch (Exception e) {

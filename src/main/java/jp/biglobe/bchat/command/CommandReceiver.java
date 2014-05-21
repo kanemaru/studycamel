@@ -9,8 +9,8 @@ public class CommandReceiver {
     public static void main(String[] args) {
 
         try {
-
             queueHandler = new QueueHandler();
+            queueHandler.createReceiverAndStart();
 
             while (true) {
                 //メッセージの受信

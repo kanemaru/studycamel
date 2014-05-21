@@ -20,6 +20,7 @@ public class ApplicationConfig implements WebSocketConfigurer {
 
         if (queueHandler == null) {
             queueHandler = new QueueHandler();
+            queueHandler.createSenderAndStart();
         }
     }
 

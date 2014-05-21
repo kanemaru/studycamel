@@ -22,6 +22,14 @@
     <!-- Common -->
     <link href="./resources/css/common.css" rel="stylesheet" />
 
+    <script type="text/javascript">
+        var wsHandler = null;
+        $(document).ready(function() {
+            wsHandler = new BChatHandler();
+            wsHandler.init();
+        });
+    </script>
+
 </head>
 
 <body>
