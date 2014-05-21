@@ -1,7 +1,7 @@
 package jp.biglobe.bchat.config;
 
-import jp.biglobe.bchat.handler.ChatHandler;
-import jp.biglobe.bchat.queue.QueueHandler;
+import jp.biglobe.bchat.websocket.handler.ChatHandler;
+import jp.biglobe.bchat.queue.handler.QueueHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

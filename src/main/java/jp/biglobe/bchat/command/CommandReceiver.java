@@ -1,6 +1,6 @@
 package jp.biglobe.bchat.command;
 
-import jp.biglobe.bchat.queue.QueueHandler;
+import jp.biglobe.bchat.queue.handler.QueueHandler;
 
 public class CommandReceiver {
 
