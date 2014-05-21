@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="studySpringChat:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="studySpringChat.war">
+      <element id="artifact" artifact-name="studySpringChat:war exploded" />
+    </root>
+  </artifact>
+</component>
