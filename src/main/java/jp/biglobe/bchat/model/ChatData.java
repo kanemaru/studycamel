@@ -8,12 +8,12 @@ import java.util.Date;
  */
 public class ChatData implements Serializable {
 
-    private String messageid;
-    private String sessionid;
-    private String name;
-    private String usericon;
-    private String message;
-    private Date messagedate;
+    private final String messageid;
+    private final String sessionid;
+    private final String name;
+    private final String usericon;
+    private final String message;
+    private final Date messagedate;
 
     public ChatData(String messageid, String sessionid, String name, String usericon, String message, Date messagedate) {
         this.messageid = messageid;

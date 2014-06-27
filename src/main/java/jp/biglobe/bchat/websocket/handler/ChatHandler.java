@@ -44,7 +44,16 @@ public class ChatHandler extends TextWebSocketHandler {
 
         for (ChatData chatData : chatDataList) {
             TextMessage sendMsg = new TextMessage(buildJsonMessage(STATUS_COMMIT, chatData));
-            session.sendMessage(sendMsg);
+            try {
+                session.sendMessage(sendMsg);
+                try {
+                    Thread.sleep(20);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -70,12 +79,20 @@ public class ChatHandler extends TextWebSocketHandler {
                 if (chatDataList.size() > MESSAGE_MAX) {
                     chatDataList.remove(0);
                 }
-                ApplicationConfig.getQueueHandler().sendObject(chatData);
+                try {
+                    ApplicationConfig.getQueueHandler().sendObject(chatData);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             TextMessage sendMsg = new TextMessage(buildJsonMessage(status, chatData));
             for (Entry<String, WebSocketSession> entry : this.sessionMap.entrySet()) {
-                entry.getValue().sendMessage(sendMsg);
+                try {
+                    entry.getValue().sendMessage(sendMsg);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
         } catch (Exception e) {
