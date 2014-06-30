@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 @RequestMapping("/")
 public class IndexController {
+
     @RequestMapping(method = RequestMethod.GET)
     public String indexAction(ModelMap model) throws Exception {
         return "index";

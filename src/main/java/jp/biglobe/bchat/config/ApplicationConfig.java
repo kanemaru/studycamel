@@ -1,8 +1,15 @@
 package jp.biglobe.bchat.config;
 
 import jp.biglobe.bchat.websocket.handler.ChatHandler;
-import jp.biglobe.bchat.queue.handler.QueueHandler;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
@@ -11,28 +18,22 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class ApplicationConfig implements WebSocketConfigurer {
 
-    private static QueueHandler queueHandler = null;
+//    @Autowired
+//    JmsTemplate jmsTemplate;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 
-        registry.addHandler(new ChatHandler(), "/bchat");
+        ActiveMQConnectionFactory connectionFactoryAMQ = new ActiveMQConnectionFactory("tcp://localhost:61616");
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory(connectionFactoryAMQ);
+        JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
+        jmsTemplate.setDefaultDestinationName("BChatMessage");
 
-        if (queueHandler == null) {
-            queueHandler = new QueueHandler();
-            queueHandler.createSenderAndStart();
-        }
-    }
-
-    public static QueueHandler getQueueHandler() throws Exception {
-        return queueHandler;
+        registry.addHandler(new ChatHandler(jmsTemplate), "/bchat");
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        if (queueHandler != null) {
-            queueHandler.closeAllResources();
-        }
     }
 }

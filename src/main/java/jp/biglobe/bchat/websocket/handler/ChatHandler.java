@@ -2,6 +2,10 @@ package jp.biglobe.bchat.websocket.handler;
 
 import jp.biglobe.bchat.config.ApplicationConfig;
 import jp.biglobe.bchat.model.ChatData;
+import jp.biglobe.bchat.mqueue.MessageSender;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -26,10 +30,16 @@ public class ChatHandler extends TextWebSocketHandler {
 
     /** 一意に振られるメッセージID */
     private static int messageId = 0;
+    private MessageSender messageSender;
 
     /** CHATデータ履歴。MESSAGE_MAXまで記録 */
     private List<ChatData> chatDataList = Collections.synchronizedList(new ArrayList<ChatData>());
     private static int MESSAGE_MAX = 100;
+
+    public ChatHandler(JmsTemplate jmsTemplate) {
+        super();
+        this.messageSender = new MessageSender(jmsTemplate);
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -79,14 +89,12 @@ public class ChatHandler extends TextWebSocketHandler {
                 if (chatDataList.size() > MESSAGE_MAX) {
                     chatDataList.remove(0);
                 }
-                try {
-                    ApplicationConfig.getQueueHandler().sendObject(chatData);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
 
-            TextMessage sendMsg = new TextMessage(buildJsonMessage(status, chatData));
+            String jsonMsg = buildJsonMessage(status, chatData);
+            messageSender.sendMessage(jsonMsg);
+
+            TextMessage sendMsg = new TextMessage(jsonMsg);
             for (Entry<String, WebSocketSession> entry : this.sessionMap.entrySet()) {
                 try {
                     entry.getValue().sendMessage(sendMsg);
@@ -175,5 +183,4 @@ public class ChatHandler extends TextWebSocketHandler {
         builder.append("\" }");
         return builder.toString();
     }
-
 }
