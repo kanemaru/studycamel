@@ -25,7 +25,7 @@
         <module name="studySpringChat" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
+    <bytecodeTargetLevel>
       <module name="studySpringChat" target="1.6" />
     </bytecodeTargetLevel>
   </component>
