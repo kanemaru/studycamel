@@ -11,7 +11,7 @@ public class MyProcessor implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
         String body = exchange.getIn().getBody(String.class);
-        body = body + " & MyProcessor";
+        body = body + " & MyProcessor, Test.";
         exchange.getIn().setBody(body);
     }
 }

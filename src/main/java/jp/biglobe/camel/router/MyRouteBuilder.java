@@ -4,6 +4,8 @@ import jp.biglobe.camel.processor.MyProcessor;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.stereotype.Component;
 
+import java.beans.Expression;
+
 /**
  * Created by sane on 2014/07/01.
  */
@@ -17,6 +19,8 @@ public class MyRouteBuilder extends SpringRouteBuilder {
 
         from("activemq:MessageQueue1").process(new MyProcessor()).to("activemq:MessageQueue2");
 
-        from("activemq:MessageQueue2").to("stream:out");
+        from("activemq:MessageQueue2").split(body(String.class).tokenize(",")).to("activemq:MessageQueue3");
+
+        from("activemq:MessageQueue3").to("stream:out");
     }
 }
