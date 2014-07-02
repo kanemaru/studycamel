@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/studySpringChat.iml" filepath="$PROJECT_DIR$/studySpringChat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/studyCamel.iml" filepath="$PROJECT_DIR$/studyCamel.iml" />
     </modules>
   </component>
 </project>
