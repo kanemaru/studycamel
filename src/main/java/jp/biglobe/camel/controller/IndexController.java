@@ -1,5 +1,6 @@
 package jp.biglobe.camel.controller;
 
+import jp.biglobe.camel.router.MyRouteBuilder;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +23,7 @@ public class IndexController {
         ProducerTemplate template = camelContext.createProducerTemplate();
 
         String buildMessage = "Hello " + message + " !!!";
-        template.sendBody("direct:start", buildMessage);
+        template.sendBody(MyRouteBuilder.DIRECT_START, buildMessage);
 
         return "index";
     }
